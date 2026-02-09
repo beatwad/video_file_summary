@@ -88,7 +88,7 @@ streamlit run app.py
 ## FAQ
 
 **Q: Is it free?**
-A: The code uses your own API key. Google Gemini currently offers a free tier. Whisper runs locally on your machine, so it costs nothing but electricity.
+A: The code uses your own API key. Google Gemini currently offers a free tier (but requests per day number is capped by 20), OpenAI GPT-5-mini cost is cheap. Whisper runs locally on your machine, so by default it costs nothing or almost nothing.
 
 **Q: It's slow?**
 A: Transcription speed depends on your hardware (CPU vs GPU) and the `WHISPER_MODEL_SIZE` selected in config. `tiny` or `base` are fast; `large` is accurate but slow.
