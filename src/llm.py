@@ -4,7 +4,6 @@ import httpx
 import time
 import traceback
 from loguru import logger
-from abc import ABC, abstractmethod
 
 from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -13,14 +12,30 @@ from src.prompts import custom_instructions, summary_prompt
 from src.app_config import MODEL_NAME, TEMPERATURE
 
 
-class AIModel(ABC):
-    @abstractmethod
-    def invoke(self, prompt: str) -> str:
-        pass
+class AIModel:
+    name = ""
+
+    def invoke(self, prompt: ChatPromptTemplate) -> BaseMessage:
+        logger.info(f"Got access to model via {self.name} API")
+        prompt_messages = [SystemMessage(content=custom_instructions)] + prompt.messages
+        try:
+            response = self.model.invoke(prompt_messages)
+            return response
+        except Exception:
+            tb_str = traceback.format_exc()
+            if self.llm_proxy:
+                logger.error(
+                    f"LLM access error using proxy {self.llm_proxy.split('@')[-1]}: \n Traceback: {tb_str}"
+                )
+            else:
+                logger.error(f"LLM access error: \n Traceback: {tb_str}")
+            time.sleep(3)
 
 
 class GeminiModel(AIModel):
     """Get access to Gemini model"""
+
+    name = "Gemini"
 
     def __init__(self, api_key: str, llm_model: str, llm_proxy: str) -> None:
         from google.genai import types
@@ -52,16 +67,11 @@ class GeminiModel(AIModel):
             http_options=http_options,
         )
 
-    def invoke(self, prompt: ChatPromptTemplate) -> BaseMessage:
-        logger.info("Got access to model via Gemini API")
-        prompt_messages = [SystemMessage(content=custom_instructions)] + prompt.messages
-        # randomly select one proxy after another until LLM request succeeds
-        response = self.model.invoke(prompt_messages)
-        return response
-
 
 class OpenAIModel(AIModel):
     """Get access to OpenAI model"""
+
+    name = "OpenAI"
 
     def __init__(self, api_key: str, llm_model: str, llm_proxy: str = None) -> None:
         from langchain_openai import ChatOpenAI
@@ -83,19 +93,6 @@ class OpenAIModel(AIModel):
             timeout=60,
             reasoning_effort="minimal",
         )
-
-    def invoke(self, prompt: ChatPromptTemplate) -> BaseMessage:
-        logger.info("Got access to model via OpenAI API")
-        prompt_messages = [SystemMessage(content=custom_instructions)] + prompt.messages
-        try:
-            response = self.model.invoke(prompt_messages)
-            return response
-        except Exception:
-            tb_str = traceback.format_exc()
-            logger.error(
-                f"LLM access error using proxy {self.llm_proxy.split('@')[-1]}: \n Traceback: {tb_str}"
-            )
-            time.sleep(3)
 
 
 class LoggerChatModel:
