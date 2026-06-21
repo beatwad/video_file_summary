@@ -1,0 +1,20 @@
+[project]
+name = "video-file-summary"
+version = "0.1.0"
+description = "AI-driven tool to transcribe local MP4 video files with Whisper and summarize them using an LLM."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit",
+    "python-dotenv",
+    "langchain-core",
+    "langchain-google-genai",
+    "langchain-openai",
+    "google-genai",
+    "httpx",
+    "loguru",
+    "openai-whisper",
+]
+
+[tool.uv]
+package = false

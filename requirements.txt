@@ -1,9 +1,0 @@
-streamlit
-python-dotenv
-langchain-core
-langchain-google-genai
-langchain-openai
-google-genai
-httpx
-loguru
-openai-whisper

@@ -9,7 +9,7 @@ from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 
 from src.prompts import custom_instructions, summary_prompt
-from src.app_config import MODEL_NAME, TEMPERATURE
+from src.app_config import MODEL_NAME, TEMPERATURE, LLM_MODEL_TYPE
 
 
 class AIModel:
@@ -95,6 +95,27 @@ class OpenAIModel(AIModel):
         )
 
 
+class OpenRouterModel(AIModel):
+    """Get access to models via OpenRouter API"""
+
+    name = "OpenRouter"
+
+    def __init__(self, api_key: str, llm_model: str, llm_proxy: str = None) -> None:
+        from langchain_openai import ChatOpenAI
+
+        http_client = httpx.Client(proxy=llm_proxy) if llm_proxy else None
+        self.llm_proxy = llm_proxy
+        self.model_name = llm_model
+        self.model = ChatOpenAI(
+            model_name=self.model_name,
+            openai_api_key=api_key,
+            openai_api_base="https://openrouter.ai/api/v1",
+            http_client=http_client,
+            temperature=TEMPERATURE,
+            timeout=60,
+        )
+
+
 class LoggerChatModel:
     def __init__(self, llm):
         self.llm = llm
@@ -124,12 +145,14 @@ def generate_summary(input_text: str) -> str:
 
     prompt_template = ChatPromptTemplate.from_template(summary_prompt)
 
-    if MODEL_NAME.startswith("gemini"):
+    if LLM_MODEL_TYPE == "gemini":
         llm = GeminiModel(llm_api_key, MODEL_NAME, llm_proxy)
-    elif MODEL_NAME.startswith("o1") or MODEL_NAME.startswith("gpt"):
+    elif LLM_MODEL_TYPE == "openai":
         llm = OpenAIModel(llm_api_key, MODEL_NAME, llm_proxy)
+    elif LLM_MODEL_TYPE == "openrouter":
+        llm = OpenRouterModel(llm_api_key, MODEL_NAME, llm_proxy)
     else:
-        raise ValueError(f"Model {MODEL_NAME} is not supported")
+        raise ValueError(f"Model type {LLM_MODEL_TYPE} is not supported")
 
     llm_wrapper = LoggerChatModel(llm)
     chain = prompt_template | llm_wrapper

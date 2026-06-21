@@ -37,18 +37,21 @@ Download from [ffmpeg.org](https://ffmpeg.org/download.html), extract it, and ad
 
 ### 2. Install Python Environment
 
-**Activate the virtual environment**
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
+
+**Install uv** (if you don't have it):
 
 ```bash
-python -m venv virtual
-source virtual/bin/activate  # On Windows: .\virtual\Scripts\activate
+curl -LsSf https://astral.sh/uv/install.sh | sh  # On Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-**Install Python packages:**
+**Install dependencies:**
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
+
+This creates a virtual environment in `.venv/` and installs all packages from `pyproject.toml`.
 
 ### 3. Set API Key
 
@@ -89,7 +92,7 @@ maxUploadSize = 10240
 
 1. Run the Streamlit app:
 ```bash
-streamlit run app.py
+uv run streamlit run app.py
 ```
 
 2. The browser will open.
@@ -109,4 +112,4 @@ A: The code uses your own API key. Google Gemini currently offers a free tier (b
 A: Transcription speed depends on your hardware (CPU vs GPU) and the `WHISPER_MODEL_SIZE` selected in config. `tiny` or `base` are fast; `large` is accurate but slow.
 
 **Q: My computer freezes when uploading a large file?**
-A: When processing large files (e.g., 1GB), the application loads the file into RAM. Ensure you have enough free memory (approx. 2x the file size is recommended) to handle the upload and the AI models simultaneously.
+A: When processing large files (e.g., 1GB+), the application loads the file into RAM. Ensure you have enough free memory (approx. 2x the file size is recommended) to handle the upload and the AI models simultaneously.
